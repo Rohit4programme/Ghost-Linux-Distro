@@ -1,0 +1,76 @@
+name: GhostOS ISO Build System
+
+on:
+  push:
+    branches: [ "main", "release/*" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  build-iso:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Docker and Privileged Mode
+        run: |
+          # Ensure Docker daemon supports loop devices inside containers (needed by mkarchiso)
+          sudo modprobe loop
+          
+      - name: Run Build in Arch Linux Container
+        run: |
+          docker run --privileged \
+            -v ${{ github.workspace }}:/workspace \
+            archlinux:latest \
+            /bin/bash -c "
+              # Update pacman keyring and system
+              pacman-key --init
+              pacman-key --populate archlinux
+              pacman -Syu --noconfirm --needed devtools archiso base-devel git sudo
+
+              # Create non-root builder user for makepkg
+              useradd -m -G wheel builder
+              echo 'builder ALL=(ALL:ALL) NOPASSWD: ALL' >> /etc/sudoers
+              chown -R builder:builder /workspace
+
+              # 1. Compile custom packages
+              mkdir -p /workspace/repo-local
+              cd /workspace
+
+              # Compile ghost-linux-keyring
+              sudo -u builder bash -c 'cd /workspace/packages/ghost-linux-keyring && makepkg -sc --noconfirm'
+              mv /workspace/packages/ghost-linux-keyring/*.pkg.tar.zst /workspace/repo-local/
+
+              # Compile ghost-linux-branding
+              sudo -u builder bash -c 'cd /workspace/packages/ghost-linux-branding && makepkg -dsc --noconfirm'
+              mv /workspace/packages/ghost-linux-branding/*.pkg.tar.zst /workspace/repo-local/
+
+              # Compile ghost-linux-apps
+              sudo -u builder bash -c 'cd /workspace/packages/ghost-linux-apps && makepkg -dsc --noconfirm'
+              mv /workspace/packages/ghost-linux-apps/*.pkg.tar.zst /workspace/repo-local/
+
+              # 2. Add packages to local repo db
+              cd /workspace/repo-local
+              repo-add ghost-linux-repo.db.tar.gz *.pkg.tar.zst
+
+              # 3. Build Archiso
+              echo 'Starting Archiso build...'
+              mkdir -p /tmp/archiso-workspace
+              mkdir -p /tmp/archiso-out
+
+              # Run mkarchiso using our customized profile
+              mkarchiso -v -w /tmp/archiso-workspace -o /tmp/archiso-out /workspace/iso-profile
+
+              # Copy output ISO to workspace
+              cp /tmp/archiso-out/*.iso /workspace/
+              echo 'Archiso build completed successfully!'
+            "
+
+      - name: Upload Signed ISO Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ghost-linux-rolling-x86_64.iso
+          path: ${{ github.workspace }}/*.iso
+          retention-days: 7

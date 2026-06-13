@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+
+# Ghost-Linux Calamares Installer Launcher
+# Runs Calamares in debug mode with custom configuration paths
+
+echo "Starting Ghost-Linux Installation Wizard..."
+
+# Check if running as root, if not, escalate
+if [ "$EUID" -ne 0 ]; then
+    sudo "$0" "$@"
+    exit $?
+fi
+
+# Run Calamares
+if [ -d "/etc/calamares" ]; then
+    calamares -d -c /etc/calamares
+else
+    calamares -d
+fi

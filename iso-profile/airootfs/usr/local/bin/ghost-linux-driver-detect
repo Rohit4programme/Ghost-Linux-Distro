@@ -1,0 +1,67 @@
+#!/usr/bin/env bash
+
+# Ghost-Linux Hardware and Driver Detection Script
+# Outputs JSON containing detected hardware and driver recommendations.
+
+detect_gpu() {
+    local gpu_info
+    gpu_info=$(lspci -nn | grep -E "VGA|3D")
+    
+    local vendor="unknown"
+    local device="unknown"
+    local rec_driver="mesa"
+    
+    if echo "$gpu_info" | grep -iq "nvidia"; then
+        vendor="NVIDIA"
+        device=$(echo "$gpu_info" | grep -io "nvidia.*" | head -n1)
+        rec_driver="nvidia-dkms"
+    elif echo "$gpu_info" | grep -iq "amd"; then
+        vendor="AMD"
+        device=$(echo "$gpu_info" | grep -io "amd.*" | head -n1)
+        rec_driver="mesa"
+    elif echo "$gpu_info" | grep -iq "intel"; then
+        vendor="Intel"
+        device=$(echo "$gpu_info" | grep -io "intel.*" | head -n1)
+        rec_driver="mesa"
+    fi
+    
+    echo "{\"vendor\": \"$vendor\", \"device\": \"${device//\"/\\\"}\", \"recommended_driver\": \"$rec_driver\"}"
+}
+
+detect_wifi() {
+    local wifi_info
+    wifi_info=$(lspci -nn | grep -i "network")
+    local vendor="unknown"
+    local rec_driver="linux-firmware"
+    
+    if echo "$wifi_info" | grep -iq "broadcom"; then
+        vendor="Broadcom"
+        rec_driver="broadcom-wl-dkms"
+    elif echo "$wifi_info" | grep -iq "realtek"; then
+        vendor="Realtek"
+        rec_driver="rtw89-dkms-git" # AUR or custom
+    elif echo "$wifi_info" | grep -iq "intel"; then
+        vendor="Intel"
+        rec_driver="iwlwifi (kernel)"
+    fi
+    
+    echo "{\"vendor\": \"$vendor\", \"recommended_driver\": \"$rec_driver\"}"
+}
+
+detect_bluetooth() {
+    local bt_info
+    bt_info=$(lsusb | grep -iE "bluetooth|bluez")
+    local status="Not Detected"
+    
+    if [ -n "$bt_info" ]; then
+        status="Detected (bluez/bluez-utils)"
+    fi
+    echo "{\"status\": \"$status\"}"
+}
+
+# Output combined JSON
+echo "{"
+echo "  \"gpu\": $(detect_gpu),"
+echo "  \"wifi\": $(detect_wifi),"
+echo "  \"bluetooth\": $(detect_bluetooth)"
+echo "}"

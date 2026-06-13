@@ -1,0 +1,10 @@
+[Type]
+Name=theme
+
+[Desktop Entry]
+Name=Ghost-Linux Glassmorphism SDDM Theme
+Comment=A premium, modern glassmorphic theme for SDDM login manager
+Version=1.0
+Author=Ghost-Linux Team
+Type=Service
+ConfigFile=theme.conf

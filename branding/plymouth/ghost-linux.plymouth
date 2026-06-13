@@ -1,0 +1,8 @@
+[Plymouth Theme]
+Name=Ghost-Linux Boot Animation
+Description=Modern glassmorphic boot animation with pulsing logo and progress bar
+ModuleName=script
+
+[script]
+ImageDir=/usr/share/plymouth/themes/ghost-linux
+ScriptFile=/usr/share/plymouth/themes/ghost-linux/ghost-linux.script

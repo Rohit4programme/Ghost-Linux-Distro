@@ -1,0 +1,37 @@
+# Maintainer: Ghost-Linux Developer Team <developer@ghost-linux.org>
+pkgname=ghost-linux-branding
+pkgver=1.0
+pkgrel=1
+pkgdesc="Branding assets, wallpapers, Plymouth, and login themes for Ghost-Linux"
+arch=('any')
+url="https://github.com/ghost-linux/ghost-linux-branding"
+license=('GPL')
+depends=('plymouth' 'sddm' 'plasma-desktop')
+source=()
+
+package() {
+    # 1. Wallpapers
+    install -d "${pkgdir}/usr/share/backgrounds/ghost-linux"
+    install -m644 "${srcdir}/../../branding/wallpaper/default.png" "${pkgdir}/usr/share/backgrounds/ghost-linux/default.png"
+    install -m644 "${srcdir}/../../branding/logo.png" "${pkgdir}/usr/share/backgrounds/ghost-linux/logo.png"
+
+    # 2. Plymouth boot theme
+    install -d "${pkgdir}/usr/share/plymouth/themes/ghost-linux"
+    install -m644 "${srcdir}/../../branding/plymouth/ghost-linux.plymouth" "${pkgdir}/usr/share/plymouth/themes/ghost-linux/ghost-linux.plymouth"
+    install -m644 "${srcdir}/../../branding/plymouth/ghost-linux.script" "${pkgdir}/usr/share/plymouth/themes/ghost-linux/ghost-linux.script"
+    # Link logo to Plymouth folder
+    ln -sf "/usr/share/backgrounds/ghost-linux/logo.png" "${pkgdir}/usr/share/plymouth/themes/ghost-linux/logo.png"
+
+    # 3. SDDM Theme
+    install -d "${pkgdir}/usr/share/sddm/themes/ghost-linux-sddm"
+    install -m644 "${srcdir}/../../branding/sddm/metadata.desktop" "${pkgdir}/usr/share/sddm/themes/ghost-linux-sddm/metadata.desktop"
+    install -m644 "${srcdir}/../../branding/sddm/theme.conf" "${pkgdir}/usr/share/sddm/themes/ghost-linux-sddm/theme.conf"
+    install -m644 "${srcdir}/../../branding/sddm/Main.qml" "${pkgdir}/usr/share/sddm/themes/ghost-linux-sddm/Main.qml"
+    ln -sf "/usr/share/backgrounds/ghost-linux/logo.png" "${pkgdir}/usr/share/sddm/themes/ghost-linux-sddm/logo.png"
+    ln -sf "/usr/share/backgrounds/ghost-linux/default.png" "${pkgdir}/usr/share/sddm/themes/ghost-linux-sddm/wallpaper.png"
+
+    # 4. KDE Global Overrides (/etc/skel)
+    install -d "${pkgdir}/etc/skel/.config"
+    install -m644 "${srcdir}/../../branding/kde-look-and-feel/kdeglobals" "${pkgdir}/etc/skel/.config/kdeglobals"
+    install -m644 "${srcdir}/../../branding/kde-look-and-feel/kwinrc" "${pkgdir}/etc/skel/.config/kwinrc"
+}

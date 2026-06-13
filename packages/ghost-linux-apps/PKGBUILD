@@ -1,0 +1,155 @@
+# Maintainer: Ghost-Linux Developer Team <developer@ghost-linux.org>
+pkgname=ghost-linux-apps
+pkgver=1.0
+pkgrel=1
+pkgdesc="Custom desktop administration, store, gaming, AI, and security applications for Ghost-Linux"
+arch=('any')
+url="https://github.com/ghost-linux/ghost-linux-apps"
+license=('GPL')
+depends=('python' 'python-pyside6' 'python-requests' 'python-pyqt6' 'python-pyqt6-webengine' 'polkit' 'cpupower' 'timeshift' 'gamemode' 'mangohud' 'nmap' 'wireshark' 'hashcat' 'metasploit' 'burpsuite' 'sqlmap' 'nikto' 'john' 'hydra' 'aircrack-ng' 'ettercap' 'ghidra' 'radare2' 'autopsy' 'volatility' 'binwalk' 'gobuster' 'ffuf' 'mitmproxy' 'bettercap')
+source=()
+
+package() {
+    # 1. Install application source files to /usr/lib/ghost-linux/apps
+    local app_dest="${pkgdir}/usr/lib/ghost-linux/apps"
+    install -d "${app_dest}/common"
+    install -d "${app_dest}/driver-center"
+    install -d "${app_dest}/ghost-linux-store"
+    install -d "${app_dest}/jarvis-ai"
+    install -d "${app_dest}/gaming-center"
+    install -d "${app_dest}/control-center"
+    install -d "${app_dest}/security-center"
+
+    # Copy files
+    cp -r "${srcdir}/../../apps/common/"* "${app_dest}/common/"
+    cp -r "${srcdir}/../../apps/driver-center/"* "${app_dest}/driver-center/"
+    cp -r "${srcdir}/../../apps/ghost-linux-store/"* "${app_dest}/ghost-linux-store/"
+    cp -r "${srcdir}/../../apps/jarvis-ai/"* "${app_dest}/jarvis-ai/"
+    cp -r "${srcdir}/../../apps/gaming-center/"* "${app_dest}/gaming-center/"
+    cp -r "${srcdir}/../../apps/control-center/"* "${app_dest}/control-center/"
+    cp -r "${srcdir}/../../apps/security-center/"* "${app_dest}/security-center/"
+
+    # 2. Create helper launchers in /usr/bin
+    install -d "${pkgdir}/usr/bin"
+    
+    cat <<EOF > "${pkgdir}/usr/bin/ghost-linux-driver-center"
+#!/usr/bin/env bash
+python /usr/lib/ghost-linux/apps/driver-center/main.py "\$@"
+EOF
+    chmod +x "${pkgdir}/usr/bin/ghost-linux-driver-center"
+
+    cat <<EOF > "${pkgdir}/usr/bin/ghost-linux-store"
+#!/usr/bin/env bash
+python /usr/lib/ghost-linux/apps/ghost-linux-store/main.py "\$@"
+EOF
+    chmod +x "${pkgdir}/usr/bin/ghost-linux-store"
+
+    cat <<EOF > "${pkgdir}/usr/bin/ghost-linux-jarvis"
+#!/usr/bin/env bash
+python /usr/lib/ghost-linux/apps/jarvis-ai/main.py "\$@"
+EOF
+    chmod +x "${pkgdir}/usr/bin/ghost-linux-jarvis"
+
+    cat <<EOF > "${pkgdir}/usr/bin/ghost-linux-gaming-center"
+#!/usr/bin/env bash
+python /usr/lib/ghost-linux/apps/gaming-center/main.py "\$@"
+EOF
+    chmod +x "${pkgdir}/usr/bin/ghost-linux-gaming-center"
+
+    cat <<EOF > "${pkgdir}/usr/bin/ghost-linux-control-center"
+#!/usr/bin/env bash
+python /usr/lib/ghost-linux/apps/control-center/main.py "\$@"
+EOF
+    chmod +x "${pkgdir}/usr/bin/ghost-linux-control-center"
+
+    cat <<EOF > "${pkgdir}/usr/bin/ghost-linux-security-center"
+#!/usr/bin/env bash
+python /usr/lib/ghost-linux/apps/security-center/main.py "\$@"
+EOF
+    chmod +x "${pkgdir}/usr/bin/ghost-linux-security-center"
+
+    # 3. Create desktop launcher menu files (.desktop)
+    install -d "${pkgdir}/usr/share/applications"
+
+    cat <<EOF > "${pkgdir}/usr/share/applications/ghost-linux-driver-center.desktop"
+[Desktop Entry]
+Name=Driver Center
+Comment=Manage hardware drivers and run health checks
+Exec=ghost-linux-driver-center
+Icon=preferences-system-hw-info
+Terminal=false
+Type=Application
+Categories=Settings;System;
+EOF
+
+    cat <<EOF > "${pkgdir}/usr/share/applications/ghost-linux-store.desktop"
+[Desktop Entry]
+Name=Ghost-Linux Store
+Comment=Universal Software Storefront
+Exec=ghost-linux-store
+Icon=system-software-install
+Terminal=false
+Type=Application
+Categories=System;
+EOF
+
+    cat <<EOF > "${pkgdir}/usr/share/applications/ghost-linux-jarvis.desktop"
+[Desktop Entry]
+Name=JARVIS AI
+Comment=System Assistant Copilot
+Exec=ghost-linux-jarvis
+Icon=applications-chat
+Terminal=false
+Type=Application
+Categories=Utility;
+EOF
+
+    cat <<EOF > "${pkgdir}/usr/share/applications/ghost-linux-gaming-center.desktop"
+[Desktop Entry]
+Name=Gaming Center
+Comment=Optimize games and change speed presets
+Exec=ghost-linux-gaming-center
+Icon=input-gaming
+Terminal=false
+Type=Application
+Categories=Game;Settings;
+EOF
+
+    cat <<EOF > "${pkgdir}/usr/share/applications/ghost-linux-control-center.desktop"
+[Desktop Entry]
+Name=Control Center
+Comment=Visual System Settings Manager
+Exec=ghost-linux-control-center
+Icon=preferences-system
+Terminal=false
+Type=Application
+Categories=Settings;System;
+EOF
+
+cat <<EOF > "${pkgdir}/usr/share/applications/ghost-linux-security-center.desktop"
+[Desktop Entry]
+Name=Security Center
+Comment=Kali Linux Security Tools Management
+Exec=ghost-linux-security-center
+Icon=security-high
+Terminal=false
+Type=Application
+Categories=System;Security;
+EOF
+
+    # 4. Install Polkit escalation authorization rules
+    install -d "${pkgdir}/usr/share/polkit-1/rules.d"
+    cat <<EOF > "${pkgdir}/usr/share/polkit-1/rules.d/10-ghost-linux-apps.rules"
+/* Allow Ghost-Linux administrative apps to execute specific operations without password prompt */
+polkit.addRule(function(action, subject) {
+    if (subject.isInGroup("wheel")) {
+        if (action.id == "org.archlinux.pkexec.pacman" ||
+            action.id == "org.freedesktop.systemd1.manage-units" ||
+            action.id == "org.freedesktop.policykit.exec" ||
+            action.id == "net.launchpad.timeshift") {
+            return polkit.Result.YES;
+        }
+    }
+});
+EOF
+}

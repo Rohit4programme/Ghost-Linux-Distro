@@ -1,0 +1,20 @@
+[General]
+ColorScheme=BreezeDark
+Name=Ghost-Linux Dark
+accentColor=0,255,255
+
+[KDE]
+LookAndFeelPackage=org.kde.breezedark.desktop
+ShowIconsOnPushButtons=true
+simpleLayout=true
+
+[Icons]
+Theme=breeze-dark
+
+[WM]
+activeBackground=34,34,46
+activeBlend=0,255,255
+activeForeground=255,255,255
+inactiveBackground=20,20,28
+inactiveBlend=224,0,255
+inactiveForeground=160,160,180
