@@ -256,6 +256,4 @@ This project is licensed under the GNU General Public License v3.0 - see the [LI
 
 ---
 
-**Made with ❤️ by the Ghost-Linux Team**
 
-[Website](https://ghost-linux.org) | [GitHub](https://github.com/ghost-linux/ghost-linux) | [Twitter](https://twitter.com/ghostlinux) | [Discord](https://discord.gg/ghostlinux)
