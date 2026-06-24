@@ -70,10 +70,7 @@
 ### Steps
 
 1. **Download the ISO**
-   ```bash
-   # Download from releases page
-   wget https://github.com/ghost-linux/ghost-linux/releases/latest/download/ghost-linux-rolling-x86_64.iso
-   ```
+  
 
 2. **Flash to USB**
    ```bash
